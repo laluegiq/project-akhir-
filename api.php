@@ -24,21 +24,112 @@ $forexIDRData = json_decode($dataIDR, true);
 if ($forexIDRData === null) {
     die("Gagal menguraikan data JSON untuk forex berdasarkan mata uang IDR.");
 }
+
+// Fungsi untuk pengurutan array berdasarkan abjad nama negara
+function sortTableData($a, $b) {
+    return strcmp($a['country'], $b['country']);
+}
+
+// Fungsi untuk pengurutan array berdasarkan nilai tukar tertinggi
+function sortTableDataByExchangeRate($a, $b) {
+    return ($a['exchangeRate'] < $b['exchangeRate']) ? 1 : -1;
+}
+
+// Memproses dan mengurutkan data untuk ditampilkan
+$tableData = array();
+
+if (isset($forexCountryData['data'])) {
+    foreach ($forexCountryData['data'] as $item) {
+        $currencyCode = $item['currencyCode'];
+        $datas = null;
+
+        foreach ($forexIDRData['data'] as $item2) {
+            if (isset($item2[$currencyCode])) {
+                $datas = ($item2[$currencyCode] !== "#N/A") ? $item2[$currencyCode] : "";
+                break;
+            }
+        }
+
+        $exchangeRateIDR = isset($forexIDRData['data'][$currencyCode]) ? htmlspecialchars($forexIDRData['data'][$currencyCode]) : 'Tidak Diketahui';
+
+        $tableData[] = array(
+            'country' => $item['country'],
+            'currency' => $item['currency'],
+            'exchangeRate' => $datas,
+        );
+    }
+
+    // Jika tombol "Urutkan" ditekan, terapkan pengurutan
+    if (isset($_GET['sort'])) {
+        $sortCriteria = $_GET['sortCriteria'] ?? 'country';
+
+        switch ($sortCriteria) {
+            case 'country':
+                usort($tableData, 'sortTableData');
+                break;
+            case 'currency':
+                usort($tableData, 'sortTableData');
+                break;
+            case 'exchangeRate':
+                usort($tableData, 'sortTableDataByExchangeRate');
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Nilai Tukar Mata Uang</title>
+    <!-- ... (kode sebelumnya) -->
 </head>
 
 <body>
     <h1>Data Nilai Tukar Mata Uang</h1>
 
     <h2>Data Berdasarkan Negara dan Mata Uang IDR</h2>
+
+    <!-- Form untuk memilih kriteria pengurutan -->
+    <form method="get" action="">
+        <label for="sortCriteria">Urutkan berdasarkan:</label>
+        <select id="sortCriteria" name="sortCriteria">
+            <option value="country">Negara</option>
+            <option value="currency">Mata Uang</option>
+            <option value="exchangeRate">Nilai Tukar</option>
+        </select>
+
+        <input type="submit" name="sort" value="Urutkan">
+    </form>
+
+    <!-- Form untuk memilih mata uang konversi -->
+    <h2>Pilih Mata Uang untuk Konversi</h2>
+    <form method="post" action="">
+        <label for="conversionCurrency">Pilih Mata Uang:</label>
+        <select id="conversionCurrency" name="conversionCurrency">
+            <?php
+            foreach ($tableData as $item) {
+                echo "<option value=\"" . htmlspecialchars($item['currency']) . "\">" . $item['currency'] . " - " . $item['country'] . "</option>";
+            }
+            ?>
+        </select>
+
+        <!-- Tombol konversi -->
+        <input type="submit" name="convert" value="Konversi">
+    </form>
+
+    <!-- Tampilkan hasil konversi jika ada -->
+    <?php
+    if (isset($_POST['convert'])) {
+        $selectedCurrency = $_POST['conversionCurrency'];
+        echo "<p>Anda memilih mata uang untuk konversi: $selectedCurrency</p>";
+        // Tambahkan logika konversi sesuai kebutuhan Anda di sini
+    }
+    ?>
+
     <table border="1">
         <tr>
             <th>Negara</th>
@@ -47,38 +138,7 @@ if ($forexIDRData === null) {
         </tr>
 
         <?php
-        // Fungsi untuk pengurutan array berdasarkan abjad nama negara
-        function sortTableData($a, $b) {
-            return strcmp($a['country'], $b['country']);
-        }
-
-        // Memproses dan mengurutkan data untuk ditampilkan
-        $tableData = array();
-
-        if (isset($forexCountryData['data'])) {
-            foreach ($forexCountryData['data'] as $item) {
-                $currencyCode = $item['currencyCode'];
-                $datas = null;
-
-                foreach ($forexIDRData['data'] as $item2) {
-                    if (isset($item2[$currencyCode])) {
-                        $datas = ($item2[$currencyCode] !== "#N/A") ? $item2[$currencyCode] : "Tidak Diketahui";
-                        break;
-                    }
-                }
-
-                $exchangeRateIDR = isset($forexIDRData['data'][$currencyCode]) ? htmlspecialchars($forexIDRData['data'][$currencyCode]) : 'Tidak Diketahui';
-
-                $tableData[] = array(
-                    'country' => $item['country'],
-                    'currency' => $item['currency'],
-                    'exchangeRate' => $datas,
-                );
-            }
-
-            // Urutkan array menggunakan fungsi sortTableData
-            usort($tableData, 'sortTableData');
-
+        if (!empty($tableData)) {
             foreach ($tableData as $item) {
                 echo "<tr>";
                 echo "<td>" . htmlspecialchars($item['country']) . "</td>";
@@ -89,74 +149,8 @@ if ($forexIDRData === null) {
         } else {
             echo "<tr><td colspan='3'>Data negara tidak tersedia.</td></tr>";
         }
-        foreach ($tableData as $item) {
-            echo "<tr>";
-            echo "<td>" . htmlspecialchars($item['country']) . "</td>";
-            echo "<td>" . htmlspecialchars($item['currency']) . "</td>";
-            echo "<td>" . $item['exchangeRate'] . "</td>";
-            echo "</tr>";
-        }
         ?>
-    </table>
 
-    <h2>Kalkulator Konversi Mata Uang</h2>
-    <form method="post" action="">
-        <label for="amount">Jumlah:</label>
-        <input type="text" id="amount" name="amount" required>
-
-        <label for="fromCurrency">Dari Mata Uang:</label>
-        <select id="fromCurrency" name="fromCurrency" required>
-            <!-- Pilihan mata uang dari data yang sudah diambil -->
-            <?php
-            foreach ($tableData as $item) {
-                echo "<option value=\"" . $item['currency'] . "\">" . $item['currency'] . " - " . $item['country'] . "</option>";
-            }
-            ?>
-        </select>
-
-        <label for="toCurrency">Ke Mata Uang:</label>
-        <select id="toCurrency" name="toCurrency" required>
-            <!-- Pilihan mata uang dari data yang sudah diambil -->
-            <?php
-            foreach ($tableData as $item) {
-                echo "<option value=\"" . $item['currency'] . "\">" . $item['currency'] . " - " . $item['country'] . "</option>";
-            }
-            ?>
-        </select>
-
-        <input type="submit" name="convert" value="Konversi">
-    </form>
-
-    <?php
-    // Logika konversi
-    if (isset($_POST['convert'])) {
-        $amount = floatval($_POST['amount']);
-        $fromCurrency = $_POST['fromCurrency'];
-        $toCurrency = $_POST['toCurrency'];
-
-        // Temukan nilai tukar untuk mata uang yang dipilih
-        $fromExchangeRate = 0;
-        $toExchangeRate = 0;
-
-        foreach ($tableData as $item) {
-            if ($item['currency'] == $fromCurrency) {
-                $fromExchangeRate = floatval($item['exchangeRate']);
-            }
-            if ($item['currency'] == $toCurrency) {
-                $toExchangeRate = floatval($item['exchangeRate']);
-            }
-        }
-
-        // Lakukan konversi
-        $convertedAmount = ($amount / $fromExchangeRate) * $toExchangeRate;
-
-        // Tampilkan hasil konversi
-        echo "<p>Hasil konversi dari $amount $fromCurrency ke $toCurrency: $convertedAmount</p>";
-    }
-    ?>
-</body>
-
-</html>
     </table>
 </body>
 

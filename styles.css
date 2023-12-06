@@ -1,53 +1,91 @@
+/* Reset styling and basic setup */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header styling */
+h1 {
+    text-align: center;
+    background-color: #3498db;
+    color: #fff;
+    padding: 15px;
     margin: 0;
 }
 
-.container {
-    text-align: center;
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
 }
 
+th, td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #3498db;
+    color: #fff;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Form styling */
 form {
-    margin-bottom: 20px;
+    margin-top: 20px;
+    text-align: center;
 }
 
-label {
+label, select, input {
     display: block;
     margin-bottom: 10px;
 }
 
-select {
+select, input[type="text"] {
     width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
+    padding: 10px;
+    box-sizing: border-box;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
 
-button {
-    padding: 10px 20px;
-    background-color: #4caf50;
-    color: white;
+/* Button styling */
+input[type="submit"] {
+    background-color: #2ecc71;
+    color: #fff;
+    padding: 12px 20px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
 }
 
-button:hover {
-    background-color: #45a049;
+input[type="submit"]:hover {
+    background-color: #27ae60;
 }
 
-#result {
+/* Result paragraph styling */
+p {
     font-weight: bold;
     font-size: 18px;
+    color: #e74c3c;
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Footer styling */
+footer {
+    text-align: center;
+    background-color: #3498db;
+    color: #fff;
+    padding: 10px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
 }
